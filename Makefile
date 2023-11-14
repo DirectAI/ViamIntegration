@@ -1,2 +1,3 @@
-module.tar.gz: requirements.txt *.sh src/*.py
-	tar czf module.tar.gz $^
+tar-archive:
+	# Create tar archive excluding ignored files
+	gtar --exclude-vcs-ignores --exclude-vcs -czvf module.tar.gz .

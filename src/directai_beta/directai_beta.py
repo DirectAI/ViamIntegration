@@ -44,13 +44,13 @@ def get_access_token(base_url, client_id, client_secret):
 
 class DirectModel(Vision, Reconfigurable):
     """
-    AWS implements a vision service that only supports detections
+    DirectModel implements a vision service that only supports detections
     and classifications.
 
     It inherits from the built-in resource subtype Vision and conforms to the
     ``Reconfigurable`` protocol, which signifies that this component can be
     reconfigured. Additionally, it specifies a constructor function
-    ``AWS.new_service`` which confirms to the
+    ``DirectModel.new_service`` which confirms to the
     ``resource.types.ResourceCreator`` type required for all models.
     """
 
@@ -79,43 +79,25 @@ class DirectModel(Vision, Reconfigurable):
     # Validates JSON Configuration
     @classmethod
     def validate_config(cls, config: ServiceConfig) -> Sequence[str]:
-        # endpoint_name = config.attributes.fields["endpoint_name"].string_value
-        # if endpoint_name == "":
-        #     raise Exception(
-        #         "An endpoint name is required as an attribute for an AWS vision service.")
-        # aws_region = config.attributes.fields["aws_region"].string_value
-        # if aws_region == "":
-        #     raise Exception(
-        #         "The AWS region is required as an attribute for an AWS vision service.")
-        # access_json = config.attributes.fields["access_json"].string_value
-        # if access_json == "":
-        #     raise Exception(
-        #         "The location of the access JSON file is required as an attribute for an AWS vision service.")
-        # if access_json[-5:] != ".json":
-        #     raise Exception(
-        #         "The location of the access JSON must end in '.json'")
-        source_cams = config.attributes.fields["source_cams"].list_value
+        config_dict = MessageToDict(config.attributes)
         
-        # LOGGER.log(logging.INFO, "BANANAFISH")
-        # LOGGER.log(logging.INFO, config.attributes)
-        # LOGGER.log(logging.INFO, type(config))
+        access_json = config_dict.get("access_json", None)
+        if access_json is None:
+            raise Exception(
+                "The location of the access JSON file is required as an attribute for a DirectAI service."
+            )
+        if access_json[-5:] != ".json":
+            raise Exception(
+                "The location of the access JSON must end in '.json'"
+            )
         
-        # config_dict = MessageToDict(config.attributes)
-        # LOGGER.log(logging.INFO, config_dict)
+        # TODO: add more in-depth validation
+        
+        LOGGER.log(logging.INFO, config_dict)
+        
+        return config.attributes.fields["source_cams"].list_value
     
-        return source_cams
-    
-
-    # Handles attribute reconfiguration
-    def reconfigure(self,
-                    config: ServiceConfig,
-                    dependencies: Mapping[ResourceName, ResourceBase]):
-        # TODO: add error handling
-                
-        self.base_url = DIRECTAI_BASE_URL
-        self.client_id = DIRECTAI_CLIENT_ID
-        self.client_secret = DIRECTAI_CLIENT_SECRET
-
+    def reset_headers(self):
         token_params = {
             "client_id": self.client_id,
             "client_secret": self.client_secret
@@ -125,78 +107,131 @@ class DirectModel(Vision, Reconfigurable):
         self.headers = {
             'Authorization': f"Bearer {self.token}",
         }
-        
+
+    # Handles attribute reconfiguration
+    def reconfigure(self,
+                    config: ServiceConfig,
+                    dependencies: Mapping[ResourceName, ResourceBase]):
+        # TODO: add error handling
+
         config_dict = MessageToDict(config.attributes)
         
-        self.nms_thresh = config_dict["nms_threshold"]
-        self.detector_configs = config_dict["detector_configs"]
+        with open(config_dict["access_json"], "r") as f:
+            access_json = json.load(f)
+
+        self.base_url = access_json["DIRECTAI_BASE_URL"]
+        self.client_id = access_json["DIRECTAI_CLIENT_ID"]
+        self.client_secret = access_json["DIRECTAI_CLIENT_SECRET"]
         
-        detector_msg = {
-            "detector_configs": self.detector_configs,
-            "nms_thresh": self.nms_thresh
-        }
-        deploy_response = self.http_client.post(
-            self.base_url + "/deploy_detector",
-            headers=self.headers,
-            json=detector_msg
-        )
-        LOGGER.log(logging.INFO, deploy_response.json())
-        self.deployed_detector_id = deploy_response.json()['deployed_id']
+        self.reset_headers()
+        
+        if "deployed_detector" in config_dict:
+            self.nms_thresh = config_dict["deployed_detector"]["nms_threshold"]
+            self.detector_configs = config_dict["deployed_detector"]["detector_configs"]
+            
+            detector_msg = {
+                "detector_configs": self.detector_configs,
+                "nms_thresh": self.nms_thresh
+            }
+            deploy_detector_response = self.http_client.post(
+                self.base_url + "/deploy_detector",
+                headers=self.headers,
+                json=detector_msg
+            )
+            LOGGER.log(logging.INFO, deploy_detector_response.json())
+            self.deployed_detector_id = deploy_detector_response.json()['deployed_id']
+        else:
+            LOGGER.log(logging.INFO, "No deployed detector in config")
+            self.deployed_detector_id = None
+            self.nms_thresh = None
+            self.detector_configs = None
+        
+        if "deployed_classifier" in config_dict:
+            self.classifier_configs = config_dict["deployed_classifier"]["classifier_configs"]
+            
+            classifier_msg = {
+                "classifier_configs": self.classifier_configs
+            }
+            deploy_classifier_response = self.http_client.post(
+                self.base_url + "/deploy_classifier",
+                headers=self.headers,
+                json=classifier_msg
+            )
+            LOGGER.log(logging.INFO, deploy_classifier_response.json())
+            self.deployed_classifier_id = deploy_classifier_response.json()['deployed_id']
+        else:
+            LOGGER.log(logging.INFO, "No deployed classifier in config")
+            self.deployed_classifier_id = None
+            self.classifier_configs = None
         
         # example:
         """
         {
-  "hello": "world",
-  "nms_threshold": 0.1,
-  "detector_configs": [
-    {
-      "name": "head",
-      "examples_to_include": [
-        "head"
-      ],
-      "detection_threshold": 0.1
-    },
-    {
-      "name": "airpods",
-      "examples_to_include": [
-        "airpods"
-      ],
-      "detection_threshold": 0.1
-    },
-    {
-      "name": "nose",
-      "examples_to_include": [
-        "nose"
-      ],
-      "detection_threshold": 0.1
-    },
-    {
-      "name": "eye",
-      "examples_to_include": [
-        "eye"
-      ],
-      "detection_threshold": 0.07
-    },
-    {
-      "name": "mouth",
-      "examples_to_include": [
-        "mouth"
-      ],
-      "detection_threshold": 0.07
-    },
-    {
-      "name": "fist",
-      "examples_to_include": [
-        "fist"
-      ],
-      "examples_to_exclude": [
-        "open hand",
-        "hand"
-      ],
-      "detection_threshold": 0.1
-    }
-  ]
-}"""
+            "access_json": "directai_credentials.json",
+            "deployed_detector": {
+                "nms_threshold": 0.1,
+                "detector_configs": [
+                    {
+                        "name": "head",
+                        "examples_to_include": [
+                            "head"
+                        ],
+                        "detection_threshold": 0.1
+                    },
+                    {
+                        "name": "fist",
+                        "examples_to_include": [
+                            "fist"
+                        ],
+                        "examples_to_exclude": [
+                            "open hand",
+                            "hand"
+                        ],
+                        "detection_threshold": 0.1
+                    }
+                ]
+            },
+            "deployed_classifier": {
+                "classifier_configs": [
+                    {
+                        "name": "kitchen",
+                        "examples_to_include": [
+                            "kitchen"
+                        ],
+                        "examples_to_exclude": []
+                    },
+                    {
+                        "name": "living room",
+                        "examples_to_include": [
+                            "living room"
+                        ],
+                        "examples_to_exclude": []
+                    },
+                    {
+                        "name": "bedroom",
+                        "examples_to_include": [
+                            "bedroom"
+                        ],
+                        "examples_to_exclude": []
+                    },
+                    {
+                        "name": "office",
+                        "examples_to_include": [
+                            "office"
+                        ],
+                        "examples_to_exclude": []
+                    },
+                    {
+                        "name": "bathroom",
+                        "examples_to_include": [
+                            "bathroom"
+                        ],
+                        "examples_to_exclude": []
+                    }
+                ]
+            }
+        }
+        """
         
     """
     Implement the methods the Viam RDK defines for the vision service API
@@ -210,35 +245,54 @@ class DirectModel(Vision, Reconfigurable):
                                  extra: Optional[Dict[str, Any]] = None,
                                  timeout: Optional[float] = None,
                                  **kwargs) -> List[Classification]:
+        assert self.deployed_classifier_id is not None, "No deployed detector!"
+        
         classifications = []
-        # if isinstance(image, RawImage):
-        #     if image.mime_type in [CameraMimeType.JPEG, CameraMimeType.PNG]:
-        #         response = self.client.invoke_endpoint(EndpointName=self.endpoint_name, 
-        #                                            ContentType= 'application/x-image',
-        #                                            Accept='application/json;verbose',
-        #                                            Body=image.data) 
-        #     else:
-        #         raise Exception("Image mime type must be JPEG or PNG, not ", image.mime_type)
-
-        # else:
-        #     stream = BytesIO()
-        #     image = image.convert("RGB")
-        #     image.save(stream, "JPEG")
-        #     response = self.client.invoke_endpoint(EndpointName=self.endpoint_name, 
-        #                                            ContentType= 'application/x-image',
-        #                                            Accept='application/json;verbose',
-        #                                            Body=stream.getvalue())
-            
-        # # Package results based on standardized output 
-        # out = json.loads(response['Body'].read())
-        # labels = out['labels']
-        # probs = out['probabilities']
-        # zipped = list(zip(labels, probs)) 
-        # res = sorted(zipped, key = lambda x: -x[1]) # zipped in decreasing probability order
+        
+        if isinstance(image, RawImage):
+            # stream = BytesIO(image.data)
+            content = image.data
+            mime_type = image.mime_type
+        else:
+            stream = BytesIO()
+            image = image.convert("RGB")
+            image.save(stream, "JPEG")
+            content = stream.getvalue()
+            mime_type = "image/jpeg"
+        
+        files = {
+            "data": ("test.jpg", content, mime_type)  # TODO: can we skip the stream?
+        }
+        classifier_params = {
+            "deployed_id": self.deployed_classifier_id,
+        }
+        resp = await self.async_http_client.post(
+            self.base_url + "/classify",
+            params=classifier_params,
+            files=files,
+            headers=self.headers
+        )
+        j = resp.json()
+        if resp.status_code == 401:
+            LOGGER.log(logging.INFO, "DirectAI auth token expired, refreshing")
+            self.reset_headers()
+            resp = await self.async_http_client.post(
+                self.base_url + "/classify",
+                params=classifier_params,
+                files=files,
+                headers=self.headers
+            )
+            j = resp.json()
+        
+        # this time, raise on ANY error
+        if resp.status_code != 200:
+            raise ValueError(j)
+        
+        pairs = list(j["scores"].items())
+        res = sorted(pairs, key = lambda x: -x[1]) # zipped in decreasing probability order
         for i in range(count):
-            # classifications.append({"class_name": res[i][0], "confidence": res[i][1]})
-            classifications.append({"class_name": f"test_{i}", "confidence": 0.5/i})
-
+            classifications.append({"class_name": res[i][0], "confidence": res[i][1]})
+        
         return classifications
 
     async def get_classifications_from_camera(self, 
@@ -261,6 +315,7 @@ class DirectModel(Vision, Reconfigurable):
                             extra: Optional[Dict[str, Any]] = None,
                             timeout: Optional[float] = None,
                             **kwargs) -> List[Detection]:
+        assert self.deployed_detector_id is not None, "No deployed detector!"
         
         detections = []
         
@@ -275,21 +330,6 @@ class DirectModel(Vision, Reconfigurable):
             content = stream.getvalue()
             mime_type = "image/jpeg"
         
-        # img_content = base64.b64encode(stream.getvalue()).decode("utf-8")
-        
-        # msg = {
-        #     "file": {
-        #         "filename": "test.jpg",
-        #         "content": img_content,
-        #         "type": mime_type
-        #     },
-        #     "detector_configs": self.detector_configs,
-        #     "nms_thresh": self.nms_thresh
-        # }
-        
-        # r = requests.post(self.base_url + "/run_detectors", json=msg, headers=self.headers)
-        # j = r.json()
-        
         files = {
             "data": ("test.jpg", content, mime_type)  # TODO: can we skip the stream?
         }
@@ -303,6 +343,18 @@ class DirectModel(Vision, Reconfigurable):
             headers=self.headers
         )
         j = resp.json()
+        if resp.status_code == 401:
+            LOGGER.log(logging.INFO, "DirectAI auth token expired, refreshing")
+            self.reset_headers()
+            resp = await self.async_http_client.post(
+                self.base_url + "/detect",
+                params=detection_params,
+                files=files,
+                headers=self.headers
+            )
+            j = resp.json()
+        
+        # this time, raise on ANY error
         if resp.status_code != 200:
             raise ValueError(j)
         
@@ -318,54 +370,6 @@ class DirectModel(Vision, Reconfigurable):
             detections.append(out_box)
         
         return detections
-
-        # if isinstance(image, RawImage):
-        #     if image.mime_type in [CameraMimeType.JPEG, CameraMimeType.PNG]:
-        #         decoded = Image.open(BytesIO(image.data))
-        #         width, height = decoded.width, decoded.height
-        #         response = self.client.invoke_endpoint(EndpointName=self.endpoint_name, 
-        #                                            ContentType= 'application/x-image',
-        #                                            Accept='application/json;verbose',  
-        #                                            Body=image.data) 
-        #     else:
-        #          raise Exception("Image mime type must be JPEG or PNG, not ", image.mime_type)
-
-        # else:
-        #     width, height = float(image.width), float(image.height)
-        #     stream = BytesIO()
-        #     image = image.convert("RGB")
-        #     image.save(stream, "JPEG")
-        #     response = self.client.invoke_endpoint(EndpointName=self.endpoint_name, 
-        #                                            ContentType= 'application/x-image',
-        #                                            Accept='application/json;verbose',
-        #                                            Body=stream.getvalue())
-            
-        # # Package results based on standardized output
-        # out = json.loads(response['Body'].read())
-        # boxes =  out['normalized_boxes']
-        # classes= out['classes']
-        # scores = out['scores']
-        # labels = out['labels']
-        # n = min(len(boxes), len(classes), len(scores))
-        
-        # for i in range(5):
-        #     # xmin, xmax = boxes[i][0] * width, boxes[i][2] * width
-        #     # ymin, ymax = boxes[i][1] * height, boxes[i][3] * height
-
-        #     # detections.append({ "confidence": float(scores[i]), "class_name": str(labels[int(classes[i])]), 
-        #                                 #  "x_min": int(xmin), "y_min": int(ymin), "x_max": int(xmax), "y_max": int(ymax) })
-        #     fake_box = {
-        #         "confidence": float(i / 5),
-        #         "class_name": f"fake_class_{i}",
-        #         "x_min": i * 20,
-        #         "y_min": i * 30,
-        #         "x_max": (i + 5) * 20,
-        #         "y_max": (i + 5) * 30
-        #     }
-        #     detections.append(fake_box)
-            
-
-        # return detections
 
     async def get_detections_from_camera(self,
                                         camera_name: str,
