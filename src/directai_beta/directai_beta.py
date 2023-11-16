@@ -119,7 +119,7 @@ class DirectModel(Vision, Reconfigurable):
         with open(config_dict["access_json"], "r") as f:
             access_json = json.load(f)
 
-        self.base_url = access_json["DIRECTAI_BASE_URL"]
+        self.base_url = access_json.get("DIRECTAI_BASE_URL", "https://api.alpha.directai.io")
         self.client_id = access_json["DIRECTAI_CLIENT_ID"]
         self.client_secret = access_json["DIRECTAI_CLIENT_SECRET"]
         
