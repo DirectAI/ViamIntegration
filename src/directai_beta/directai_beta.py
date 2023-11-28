@@ -250,7 +250,6 @@ class DirectModel(Vision, Reconfigurable):
         classifications = []
         
         if isinstance(image, RawImage):
-            # stream = BytesIO(image.data)
             content = image.data
             mime_type = image.mime_type
         else:
@@ -320,12 +319,16 @@ class DirectModel(Vision, Reconfigurable):
         detections = []
         
         if isinstance(image, RawImage):
-            # stream = BytesIO(image.data)
             content = image.data
             mime_type = image.mime_type
+            # NOTE: DirectAI may return boxes that are out of bounds
+            # to address this, we need the image size
+            image = Image.open(BytesIO(content))
+            width, height = image.size
         else:
             stream = BytesIO()
             image = image.convert("RGB")
+            width, height = image.size
             image.save(stream, "JPEG")
             content = stream.getvalue()
             mime_type = "image/jpeg"
@@ -362,10 +365,10 @@ class DirectModel(Vision, Reconfigurable):
             out_box = {
                 "confidence": det["score"],
                 "class_name": det["class"],
-                "x_min": int(det["tlbr"][0]),
-                "y_min": int(det["tlbr"][1]),
-                "x_max": int(det["tlbr"][2]),
-                "y_max": int(det["tlbr"][3])
+                "x_min": max(int(det["tlbr"][0]), 0),
+                "y_min": max(int(det["tlbr"][1]), 0),
+                "x_max": min(int(det["tlbr"][2]), width),
+                "y_max": min(int(det["tlbr"][3]), height)
             }
             detections.append(out_box)
         
