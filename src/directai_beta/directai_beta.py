@@ -24,13 +24,6 @@ import base64
 import httpx
 import asyncio
 
-from dotenv import load_dotenv
-import os
-load_dotenv()
-DIRECTAI_CLIENT_ID = os.getenv("DIRECTAI_CLIENT_ID")
-DIRECTAI_CLIENT_SECRET = os.getenv("DIRECTAI_CLIENT_SECRET")
-DIRECTAI_BASE_URL = os.getenv("DIRECTAI_BASE_URL")
-
 
 def get_access_token(base_url, client_id, client_secret):
     params = {
@@ -119,7 +112,7 @@ class DirectModel(Vision, Reconfigurable):
         with open(config_dict["access_json"], "r") as f:
             access_json = json.load(f)
 
-        self.base_url = access_json.get("DIRECTAI_BASE_URL", "https://api.alpha.directai.io")
+        self.base_url = access_json.get("DIRECTAI_BASE_URL", "https://api.free.directai.io")
         self.client_id = access_json["DIRECTAI_CLIENT_ID"]
         self.client_secret = access_json["DIRECTAI_CLIENT_SECRET"]
         

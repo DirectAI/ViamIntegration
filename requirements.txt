@@ -1,7 +1,5 @@
 pip
 viam-sdk
-# boto3
 pillow == 10.0.1
 requests
 httpx
-python-dotenv
