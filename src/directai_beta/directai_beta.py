@@ -49,7 +49,7 @@ class DirectModel(Vision, Reconfigurable):
 
     # Here is where we define our new model's colon-delimited-triplet
     # (viam:vision:aws-sagemaker) viam = namespace, vision = family, aws-sagemaker = model name.
-    MODEL: ClassVar[Model] = Model(ModelFamily("directai", "vision"), "directai-beta")
+    MODEL: ClassVar[Model] = Model(ModelFamily("directai", "viamintegration"), "directai-beta")
 
     def __init__(self, name: str):
         super().__init__(name=name)

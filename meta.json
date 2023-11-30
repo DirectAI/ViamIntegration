@@ -1,6 +1,6 @@
 {
   "module_id": "02a52f0b-cceb-4c4c-b5bb-976596459f26:directai-beta",
-  "visibility": "private",
+  "visibility": "public",
   "url": "https://github.com/DirectAI/ViamIntegration",
   "description": "Provides access to a beta implementation of the DirectAI API for Viam users.",
   "models": [
