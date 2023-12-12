@@ -31,7 +31,17 @@ Navigate to the **Config** tab of your robot’s page in [the Viam app](https://
 
 The following attributes are available for `directai:viamintegration:directai-beta` vision services:
 
-### TODO: add overview of attributes
+### Example Viam Configuration
+
+DirectAI module Viam vision service sample configuration:
+
+[DirectAI Viam Vision Service Config](viam_service_config.json.template)
+
+
+Viam transform camera sample configuration:
+
+[Viam Transform Camera Config](viam_transform_camera_config.json.template)
+
 
 ### Example Access JSON
 

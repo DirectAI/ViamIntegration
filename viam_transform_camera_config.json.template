@@ -1,0 +1,12 @@
+{
+  "source": "<-YOUR VIAM CAMERA NAME->",
+  "pipeline": [
+    {
+      "type": "detections",
+      "attributes": {
+        "detector_name": "<-YOUR VIAM VISION SERVICE NAME->",
+        "confidence_threshold": 0.1
+      }
+    }
+  ]
+}
