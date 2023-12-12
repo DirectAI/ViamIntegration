@@ -1,0 +1,65 @@
+{
+    "access_json": "directai_credentials.json",
+    "deployed_detector": {
+        "nms_threshold": 0.1,
+        "detector_configs": [
+            {
+                "name": "head",
+                "examples_to_include": [
+                    "head"
+                ],
+                "detection_threshold": 0.1
+            },
+            {
+                "name": "fist",
+                "examples_to_include": [
+                    "fist"
+                ],
+                "examples_to_exclude": [
+                    "open hand",
+                    "hand"
+                ],
+                "detection_threshold": 0.1
+            }
+        ]
+    },
+    "deployed_classifier": {
+        "classifier_configs": [
+            {
+                "name": "kitchen",
+                "examples_to_include": [
+                    "kitchen"
+                ],
+                "examples_to_exclude": []
+            },
+            {
+                "name": "living room",
+                "examples_to_include": [
+                    "living room"
+                ],
+                "examples_to_exclude": []
+            },
+            {
+                "name": "bedroom",
+                "examples_to_include": [
+                    "bedroom"
+                ],
+                "examples_to_exclude": []
+            },
+            {
+                "name": "office",
+                "examples_to_include": [
+                    "office"
+                ],
+                "examples_to_exclude": []
+            },
+            {
+                "name": "bathroom",
+                "examples_to_include": [
+                    "bathroom"
+                ],
+                "examples_to_exclude": []
+            }
+        ]
+    }
+}
