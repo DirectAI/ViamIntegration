@@ -99,7 +99,9 @@ Your Access JSON should be stored on the machine that's running your Viam Server
 The following attributes are available for `directai:viamintegration:directai-beta` vision services:
 | Name | Type | Inclusion | Description |
 |------|------|-----------|-------------|
-| `access_json` | string | **Required** | A string that indicates an absolute path on your local machine to a JSON including DirectAI Client Credentials. See description [here](#example-access-json).
+| `access_json` | string | **Required** | A string that indicates an absolute path on your local machine to a JSON including DirectAI Client Credentials. See description in [Example Access JSON](#example-access-json) section. |
+| `deployed_classifier` | json | **Optional** | A JSON that contains a `classifier_configs` key and corresponding list of classifier configurations. Each classifier is defined by a `name`, a list of text `examples_to_include`, and a list of text `examples_to_exclude`. |
+| `deployed_detector` | json | **Optional** | A JSON that contains a `detector_configs` key and corresponding list of detector configurations. Each detector is defined by a `name`, a list of text `examples_to_include`, and a list of text `examples_to_exclude`. |
 
 > [!NOTE]  
 > For more information, see [Configure a Robot](https://docs.viam.com/manage/configuration/).
