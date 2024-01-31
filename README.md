@@ -20,20 +20,72 @@ This module implements the following methods of the [vision service API](https:/
 
 Navigate to the **Config** tab of your robot’s page in [the Viam app](https://app.viam.com/). Click on the **Services** subtab and click **Create service**. Select the `vision` type, then select the `directai-beta` model. Enter a name for your service and click **Create**.
 
-### Example Configuration
+On the new component panel, copy and paste the Example Detector *or* Classifier Attributes.
 
-### TODO: add example configuration
+### Example Detector Attributes
 
-> [!NOTE]  
-> For more information, see [Configure a Robot](https://docs.viam.com/manage/configuration/).
+```json
+{
+  "access_json": "ABSOLUTE_PATH_TO_ACCESS_JSON_FILE",
+  "deployed_detector": {
+    "detector_configs": [
+      {
+        "name": "nose",
+        "examples_to_include": [
+          "nose"
+        ],
+        "detection_threshold": 0.1
+      },
+      {
+        "examples_to_include": [
+          "mouth"
+        ],
+        "examples_to_exclude": [
+          "mustache"
+        ],
+        "detection_threshold": 0.1,
+        "name": "mouth"
+      },
+      {
+        "examples_to_include": [
+          "eye"
+        ],
+        "detection_threshold": 0.1,
+        "name": "eye"
+      },
+    ],
+    "nms_threshold": 0.1
+  }
+}
+```
 
-### Attributes
+### Example Classifier Attributes
 
-The following attributes are available for `directai:viamintegration:directai-beta` vision services:
-
-### TODO: add overview of attributes
+```json
+{
+  "access_json": "ABSOLUTE_PATH_TO_ACCESS_JSON_FILE",
+  "deployed_classifier": {
+    "classifier_configs": [
+      {
+        "name": "happy",
+        "examples_to_include": [
+          "happy person"
+        ],
+      },
+      {
+        "name": "sad",
+        "examples_to_include": [
+          "sad person"
+        ]
+      }
+    ]
+  }
+}
+```
 
 ### Example Access JSON
+
+Your Access JSON should be stored on the machine that's running your Viam Server. Ensure that the Access JSON path that you provide in your Config (shown above) is **absolute**, not relative. (e.g. `/Users/janesmith/Downloads/directai_credential.json`, not `~/Downloads/directai_credential.json`) You can access your credentials by clicking **Get API Access** on the [DirectAI website](https://directai.io/).
 
 ```json
 {
@@ -41,3 +93,21 @@ The following attributes are available for `directai:viamintegration:directai-be
   "DIRECTAI_CLIENT_SECRET": "L23LKkl0d5<M0R3S4F3"
 }
 ```
+
+### Attributes
+
+The following attributes are available for `directai:viamintegration:directai-beta` vision services:
+| Name | Type | Inclusion | Description |
+|------|------|-----------|-------------|
+| `access_json` | string | **Required** | A string that indicates an absolute path on your local machine to a JSON including DirectAI Client Credentials. See description [here](#example-access-json).
+
+> [!NOTE]  
+> For more information, see [Configure a Robot](https://docs.viam.com/manage/configuration/).
+
+
+
+
+
+
+
+
