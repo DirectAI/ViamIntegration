@@ -1,5 +1,5 @@
 # DirectAI Viam Integration (beta)
-Module of the Viam vision service to automatically build, deploy, and run inferences on custom object detectors and image classifiers via DirectAI's cloud offering. Since this is a beta test of such a service, the latency is high and availability of the cloud service is not guaranteed.
+Module of the Viam vision service to automatically build, deploy, and run inferences on custom object detectors and image classifiers via DirectAI's cloud offering. Since this is a beta test of such a service, the latency may be high and availability of the cloud service is not guaranteed. See [here](https://www.loom.com/share/08d15df72eb5443ea0315e3d03cf6486?sid=1451ba1e-13f9-4f75-9cf8-63074f66f29e) for a demo!
 
 Internally, this module calls DirectAI's `deploy_detector` and `deploy_classifier` endpoints with the provided configuration, saves the ID of the deployed models, and then calls the models via their IDs on incoming images. See [docs](https://api.alpha.directai.io/docs) for an overview of DirectAI's publicly available API.
 
