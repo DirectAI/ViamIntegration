@@ -130,6 +130,7 @@ Once the `directai:viamintegration:directai-beta` modular service is in use, con
 ## Next Steps
 To write code to use the motion detector output, use one of the [available SDKs](https://docs.viam.com/program/).
 
+Please join [DirectAI's discord](https://discord.com/invite/APU6MWBKQv), contact us at [ben@directai.io](mailto:ben@directai.io), or schedule time on our calendly if you have any questions or feedback!
 
 
 
