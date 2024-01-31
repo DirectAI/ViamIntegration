@@ -3,24 +3,27 @@ Module of the Viam vision service to automatically build, deploy, and run infere
 
 Internally, this module calls DirectAI's `deploy_detector` and `deploy_classifier` endpoints with the provided configuration, saves the ID of the deployed models, and then calls the models via their IDs on incoming images. See [docs](https://api.alpha.directai.io/docs) for an overview of DirectAI's publicly available API.
 
-## Getting started
+Note that this README closely follows Viam's in-house motion-detector documentation, as described [here](https://github.com/viam-labs/motion-detector/).
 
-The first step is to obtain DirectAI API credentials. Instructions [here](https://api.alpha.directai.io/docs).
+## Getting started with Viam & DirectAI
 
-This module implements the following methods of the [vision service API](https://docs.viam.com/services/vision/#api):
-  * `GetDetections()`
-  * `GetDetectionsFromCamera()`
-  * `GetClassifications()`
-  * `GetClassificationsFromCamera()`
-
+Start by [configuring a camera](https://docs.viam.com/components/camera/webcam/) on your robot. Remember the name you give to the camera, it will be important later.
 > [!NOTE]  
 > Before configuring your vision service, you must [create a robot](https://docs.viam.com/manage/fleet/robots/#add-a-new-robot).
+
+Before calling DirectAI's API via Viam, you have to grab your client credentials. Generate them by clicking **Get API Access** on the [DirectAI website](https://directai.io/). Save them in an Access JSON on the same machine that's running your Viam Server.
+```json
+{
+  "DIRECTAI_CLIENT_ID": "UE9S0AG9KS4F3",
+  "DIRECTAI_CLIENT_SECRET": "L23LKkl0d5<M0R3S4F3"
+}
+```
 
 ## Configuration
 
 Navigate to the **Config** tab of your robot’s page in [the Viam app](https://app.viam.com/). Click on the **Services** subtab and click **Create service**. Select the `vision` type, then select the `directai-beta` model. Enter a name for your service and click **Create**.
 
-On the new component panel, copy and paste the Example Detector *or* Classifier Attributes.
+On the new component panel, copy and paste the Example Detector *or* Classifier Attributes. Ensure that the Access JSON path that you provide in your Config is **absolute**, not relative. (e.g. `/Users/janesmith/Downloads/directai_credential.json`, not `~/Downloads/directai_credential.json`)
 
 ### Example Detector Attributes
 
@@ -83,16 +86,7 @@ On the new component panel, copy and paste the Example Detector *or* Classifier 
 }
 ```
 
-### Example Access JSON
 
-Your Access JSON should be stored on the machine that's running your Viam Server. Ensure that the Access JSON path that you provide in your Config (shown above) is **absolute**, not relative. (e.g. `/Users/janesmith/Downloads/directai_credential.json`, not `~/Downloads/directai_credential.json`) You can access your credentials by clicking **Get API Access** on the [DirectAI website](https://directai.io/).
-
-```json
-{
-  "DIRECTAI_CLIENT_ID": "UE9S0AG9KS4F3",
-  "DIRECTAI_CLIENT_SECRET": "L23LKkl0d5<M0R3S4F3"
-}
-```
 
 ### Attributes
 
@@ -106,7 +100,35 @@ The following attributes are available for `directai:viamintegration:directai-be
 > [!NOTE]  
 > For more information, see [Configure a Robot](https://docs.viam.com/manage/configuration/).
 
+## Usage
 
+This module implements the following methods of the [vision service API](https://docs.viam.com/services/vision/#api):
+  * `GetDetections()`
+  * `GetDetectionsFromCamera()`
+  * `GetClassifications()`
+  * `GetClassificationsFromCamera()`
+
+The module behavior differs slightly for classifications and detections.
+
+When returning classifications, the module will return a list of dictionaries. The list length will be equal to length of the `classifier_configs` list provided in the deployed classifier attributes. Each dictionary will include `class_name` and `confidence` key-value pair in decreaising confidence order.
+
+When returning detections, the module will return a list of detections with bounding boxes that encapsulate the movement. Each detection will be of the following form:
+```json
+{
+  "confidence": float,
+  "class_name": string,
+  "x_min": float,
+  "y_min": float,
+  "x_max": float,
+  "y_max": float
+}
+```
+
+## Visualize
+Once the `directai:viamintegration:directai-beta` modular service is in use, configure a [transform camera](https://docs.viam.com/components/camera/transform/) to see classifications or detections appear in your robot's field of vision. View the transform camera from the [Control tab](https://docs.viam.com/manage/fleet/robots/#control).
+
+## Next Steps
+To write code to use the motion detector output, use one of the [available SDKs](https://docs.viam.com/program/).
 
 
 
