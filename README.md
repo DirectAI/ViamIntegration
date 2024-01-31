@@ -23,7 +23,7 @@ Before calling DirectAI's API via Viam, you have to grab your client credentials
 
 Navigate to the **Config** tab of your robot’s page in [the Viam app](https://app.viam.com/). Click on the **Services** subtab and click **Create service**. Select the `vision` type, then select the `directai-beta` model. Enter a name for your service and click **Create**.
 
-On the new component panel, copy and paste the Example Detector *or* Classifier Attributes. Ensure that the Access JSON path that you provide in your Config is **absolute**, not relative. (e.g. `/Users/janesmith/Downloads/directai_credential.json`, not `~/Downloads/directai_credential.json`)
+On the new component panel, copy and paste the Example Detector *or* Classifier Attributes. Note that you can deploy classifier & detector attributes **simultaneously** if you'd like. Ensure that the Access JSON path that you provide in your Config is **absolute**, not relative. (e.g. `/Users/janesmith/Downloads/directai_credential.json`, not `~/Downloads/directai_credential.json`)
 
 ### Example Detector Attributes
 
@@ -95,7 +95,7 @@ The following attributes are available for `directai:viamintegration:directai-be
 |------|------|-----------|-------------|
 | `access_json` | string | **Required** | A string that indicates an absolute path on your local machine to a JSON including DirectAI Client Credentials. See description in [Example Access JSON](#example-access-json) section. |
 | `deployed_classifier` | json | **Optional** | A JSON that contains a `classifier_configs` key and corresponding list of classifier configurations. Each classifier is defined by a `name`, a list of text `examples_to_include`, and a list of text `examples_to_exclude`. See [Example Classifier Attributes](#example-classifier-attributes). |
-| `deployed_detector` | json | **Optional** | A JSON that contains a `detector_configs` key and corresponding list of detector configurations. Each detector is defined by a `name`, a list of text `examples_to_include`, and a list of text `examples_to_exclude`. See [Example Detector Attributes](#example-detector-attributes). |
+| `deployed_detector` | json | **Optional** | A JSON that contains `detector_configs` (list of detector configurations) and an `nms_threshold`. Each detector is defined by a `name`, a list of text `examples_to_include`, a list of text `examples_to_exclude`, and a `detection_threshold`. For more information on NMS and Detection thresholds, check out the [DirectAI docs](https://api.alpha.directai.io/docs#/). See [Example Detector Attributes](#example-detector-attributes). |
 
 > [!NOTE]  
 > For more information, see [Configure a Robot](https://docs.viam.com/manage/configuration/).
@@ -130,7 +130,7 @@ Once the `directai:viamintegration:directai-beta` modular service is in use, con
 ## Next Steps
 To write code to use the motion detector output, use one of the [available SDKs](https://docs.viam.com/program/).
 
-Please join [DirectAI's discord](https://discord.com/invite/APU6MWBKQv), contact us at [ben@directai.io](mailto:ben@directai.io), or schedule time on our calendly if you have any questions or feedback!
+Please join [DirectAI's discord](https://discord.com/invite/APU6MWBKQv), contact us at [ben@directai.io](mailto:ben@directai.io), or schedule time on [our calendly](https://calendly.com/directai/demo) if you have any questions or feedback!
 
 
 
