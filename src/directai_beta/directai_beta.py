@@ -117,6 +117,9 @@ class DirectModel(Vision, Reconfigurable):
         self.client_secret = access_json["DIRECTAI_CLIENT_SECRET"]
         
         self.reset_headers()
+
+        # Need to add components as dependencies to the object
+        self.DEPS = dependencies
         
         if "deployed_detector" in config_dict:
             self.nms_thresh = config_dict["deployed_detector"]["nms_threshold"]
@@ -294,12 +297,13 @@ class DirectModel(Vision, Reconfigurable):
                                               extra: Optional[Dict[str, Any]] = None,
                                               timeout: Optional[float] = None,
                                               **kwargs) -> List[Classification]:
-        if camera_name not in self.source_cams:
-            raise Exception(
-                "Camera name given to method",camera_name, " is not one of the configured source_cams ", self.source_cams)
-        cam = self.cameras[camera_name]
-        img = await cam.get_image()
-        return await self.get_classifications(image=img, count=count)
+        camera_resource = Camera.get_resource_name(camera_name)
+        if (camera_resource not in self.DEPS):
+            raise Exception("Camera resource not found")
+        actual_cam = self.DEPS[Camera.get_resource_name(camera_name)]
+        cam = cast(Camera, actual_cam)
+        cam_image = await cam.get_image()
+        return await self.get_classifications(image=cam_image, count=count)
  
     async def get_detections(self,
                             image: Union[Image.Image, RawImage],
@@ -374,13 +378,13 @@ class DirectModel(Vision, Reconfigurable):
                                         timeout: Optional[float] = None,
                                         **kwargs) -> List[Detection]:
 
-
-        if camera_name not in self.source_cams:
-            raise Exception(
-                "Camera name given to method",camera_name, " is not one of the configured source_cams ", self.source_cams)
-        cam = self.cameras[camera_name]
-        img = await cam.get_image()
-        return await self.get_detections(image=img)
+        camera_resource = Camera.get_resource_name(camera_name)
+        if (camera_resource not in self.DEPS):
+            raise Exception("Camera resource not found")
+        actual_cam = self.DEPS[Camera.get_resource_name(camera_name)]
+        cam = cast(Camera, actual_cam)
+        cam_image = await cam.get_image()
+        return await self.get_detections(cam_image)
     
     async def get_object_point_clouds(self,
                                       camera_name: str,
